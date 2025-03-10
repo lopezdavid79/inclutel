@@ -5,7 +5,7 @@ import sys
 import wx
 import wx.lib.mixins.listctrl as listmix
 from module.ReproductorSonido import ReproductorSonido
-from views.fr_ListSocio import ListSocio
+from views.fr_ListSocio import ListSocio,AgregarSocioDialog
 from module.GestionReclamo import GestionReclamo
 from module.GestionSocio import GestionSocio
 gestion_reclamo = GestionReclamo()
@@ -17,7 +17,7 @@ class ListReclamo(wx.Frame, listmix.ListCtrlAutoWidthMixin):
         panel = wx.Panel(self)
         self.nombre_archivo_productos = 'data/productos.json'
         # Botón desplegable 
-        self.btn_menu = wx.Button(panel, label="Menú&M", pos=(10, 260))  # Ajusta la posición según sea necesario
+        self.btn_menu = wx.Button(panel, label="&Menú", pos=(10, 260))  # Ajusta la posición según sea necesario
         self.btn_menu.Bind(wx.EVT_BUTTON, self.on_mostrar_menu)
         # Lista de reclamos
         self.list_ctrl = wx.ListCtrl(panel, style=wx.LC_REPORT | wx.BORDER_SUNKEN, pos=(10, 10), size=(600, 250))
@@ -82,6 +82,10 @@ class ListReclamo(wx.Frame, listmix.ListCtrlAutoWidthMixin):
         menu = wx.Menu()
         ver_socio_item = menu.Append(wx.ID_ANY, "Ver Socios")
         self.Bind(wx.EVT_MENU, self.on_ver_socios, ver_socio_item)
+        add_socio_item = menu.Append(wx.ID_ANY, "Agregar Socios")
+        self.Bind(wx.EVT_MENU, self.on_add_socios, add_socio_item)
+        exit_socio_item = menu.Append(wx.ID_ANY, "Salir")
+        self.Bind(wx.EVT_MENU, self.cerrar_ventana, exit_socio_item)
         self.PopupMenu(menu, self.btn_menu.GetPosition())
         menu.Destroy()
 
@@ -89,6 +93,11 @@ class ListReclamo(wx.Frame, listmix.ListCtrlAutoWidthMixin):
         frame_socios = ListSocio(self) # Crea una instancia de fr_listSocio
         frame_socios.Show()
         
+    def on_add_socios(self, event):
+        add_socios = AgregarSocioDialog(self) # Crea una instancia de fr_listSocio
+        add_socios.Show()
+        
+
 
 class DetalleReclamoDialog(wx.Dialog):
     def __init__(self, parent, id_reclamo, datos):
