@@ -1,3 +1,8 @@
+import pickle
+import urllib.parse
+import webbrowser
+from views.fr_opciones import Opciones
+
 import datetime
 import os
 import re
@@ -10,6 +15,21 @@ from module.GestionReclamo import GestionReclamo
 from module.GestionSocio import GestionSocio
 gestion_reclamo = GestionReclamo()
 gestion_socio = GestionSocio()
+
+DATA_FILE = "data.pkl"
+telefono_global = ""  # Variable global
+
+def load_phone_number():
+    global telefono_global
+    try:
+        with open(DATA_FILE, "rb") as file:
+            data = pickle.load(file)
+            telefono_global = data.get("phone_number", "")
+            return telefono_global
+    except (FileNotFoundError, EOFError):
+        telefono_global = ""
+        return ""
+
 class ListReclamo(wx.Frame, listmix.ListCtrlAutoWidthMixin):
     def __init__(self, parent, id=None, title="Gestión de Reclamos", *args, **kwds):
         super().__init__(parent, id=wx.ID_ANY, title=title, *args, **kwds)
@@ -84,8 +104,11 @@ class ListReclamo(wx.Frame, listmix.ListCtrlAutoWidthMixin):
         self.Bind(wx.EVT_MENU, self.on_ver_socios, ver_socio_item)
         add_socio_item = menu.Append(wx.ID_ANY, "Agregar Socios")
         self.Bind(wx.EVT_MENU, self.on_add_socios, add_socio_item)
+        opcion_item = menu.Append(wx.ID_ANY, "Opciones")
+        self.Bind(wx.EVT_MENU, self.on_opcion, opcion_item)        
         exit_socio_item = menu.Append(wx.ID_ANY, "Salir")
         self.Bind(wx.EVT_MENU, self.cerrar_ventana, exit_socio_item)
+        
         self.PopupMenu(menu, self.btn_menu.GetPosition())
         menu.Destroy()
 
@@ -98,6 +121,12 @@ class ListReclamo(wx.Frame, listmix.ListCtrlAutoWidthMixin):
         add_socios.Show()
         
 
+
+
+    def on_opcion(self, event):
+        opcion_form = Opciones(self) # Crea una instancia de fr_Opciones
+        opcion_form.Show()
+    
 
 class DetalleReclamoDialog(wx.Dialog):
     def __init__(self, parent, id_reclamo, datos):
@@ -254,10 +283,10 @@ class AgregarReclamoDialog(wx.Dialog):
         panel = wx.Panel(self)
         grid = wx.GridBagSizer(5, 5)
 
-        # Tipo de Reclamo (combo box)
-        grid.Add(wx.StaticText(panel, label="Tipo de Reclamo:"), pos=(0, 0), flag=wx.ALL, border=5)
-        self.combo_tipo = wx.ComboBox(panel, choices=["Luz", "Agua", "Internet", "Cable"], style=wx.CB_READONLY)
-        grid.Add(self.combo_tipo, pos=(0, 1), flag=wx.EXPAND | wx.ALL, border=5)
+        # servicio de Reclamo (combo box)
+        grid.Add(wx.StaticText(panel, label="servicio de Reclamo:"), pos=(0, 0), flag=wx.ALL, border=5)
+        self.combo_servicio = wx.ComboBox(panel, choices=["Luz", "Agua", "Internet", "Cable"], style=wx.CB_READONLY)
+        grid.Add(self.combo_servicio, pos=(0, 1), flag=wx.EXPAND | wx.ALL, border=5)
 
         # Detalle (multilínea)
         grid.Add(wx.StaticText(panel, label="Detalle:"), pos=(1, 0), flag=wx.ALL, border=5)
@@ -306,7 +335,7 @@ class AgregarReclamoDialog(wx.Dialog):
         socios = gestion_socio.obtener_todos()  # Suponiendo que devuelve el diccionario JSON
         print("Datos obtenidos de gestion_socio.obtener_todos():")
         print(socios)
-        print("Tipo de 'socios':", type(socios))  
+        print("servicio de 'socios':", type(socios))  
         socios_dict = {}  # Se crea un diccionario vacío.
         
         if socios:
@@ -352,31 +381,41 @@ class AgregarReclamoDialog(wx.Dialog):
         event.Skip()
 
     def guardar_reclamo(self, event):
-        # Obtener la fecha y hora actual
-        fecha_hora = datetime.datetime.now()
-        fecha_hora_formateada = fecha_hora.isoformat()
 
-        tipo = self.combo_tipo. GetValue().strip()
+        servicio = self.combo_servicio.GetValue().strip()
         detalle = self.txt_detalle.GetValue().strip()
         socio = self.txt_socio.GetValue().strip()
         estado = self.combo_estado.GetValue().strip()
 
-        if not tipo or not detalle or not socio or not estado:
+        if not servicio or not detalle or not socio or not estado:
             self.mostrar_mensaje("Error: Todos los campos son obligatorios.", wx.ICON_ERROR)
             return
 
         try:
-            gestion_reclamo.registrar_reclamo(fecha_hora_formateada,tipo,detalle,socio,estado) 
-            print(f"Reclamo guardado: Fecha y Hora={fecha_hora_formateada}, Tipo={tipo}, socio={socio}, Detalle={detalle}, Estado={estado}")
+            gestion_reclamo.registrar_reclamo(None,servicio, detalle, socio, estado)
+            print(f"Reclamo guardado: servicio={servicio}, socio={socio}, Detalle={detalle}, Estado={estado}")
             self.mostrar_mensaje("Reclamo guardado con éxito.", wx.ICON_INFORMATION)
 
+            # Enviar reclamo por WhatsApp
+            self.enviar_reclamo_whatsapp(servicio, detalle, socio)
+
             # Limpiar los campos después de guardar
-            self.combo_tipo.SetSelection(0) #Selecciona el primer item del combo box tipo
+            self.combo_servicio.SetSelection(0)
             self.txt_detalle.SetValue("")
             self.txt_socio.SetValue("")
-            self.combo_estado.SetSelection(0)  # Selecciona el primer elemento (Pendiente)
+            self.combo_estado.SetSelection(0)
         except Exception as e:
             self.mostrar_mensaje(f"Error al guardar el reclamo: {e}", wx.ICON_ERROR)
 
-    def mostrar_mensaje(self, mensaje, tipo=wx.ICON_ERROR):
-        wx.MessageBox(mensaje, "Información", style=tipo)
+    def enviar_reclamo_whatsapp(self, servicio, detalle, socio):
+        """Envía el reclamo por WhatsApp a un número fijo."""
+
+        numero_telefono =telefono_global # Accede a la variable global 
+        mensaje = f"Nuevo reclamo:\nServicio: {servicio}\n- {detalle}\nSocio: {socio}"
+        mensaje_codificado = urllib.parse.quote(mensaje)
+        url = f"https://wa.me/{numero_telefono}?text={mensaje_codificado}"
+        webbrowser.open_new_tab(url)
+
+
+    def mostrar_mensaje(self, mensaje, servicio=wx.ICON_ERROR):
+        wx.MessageBox(mensaje, "Información", style=servicio)

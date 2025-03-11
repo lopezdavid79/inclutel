@@ -13,7 +13,7 @@ class ReclamoFrame(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
 
         # Campos para el reclamo con etiquetas descriptivas (orden modificado)
-        wx.StaticText(panel, label="Seleccione el servicio:", name="lblServicio").SetHelpText("Seleccione el tipo de servicio para el reclamo.")
+        wx.StaticText(panel, label="Seleccione el servicio:", name="lblServicio").SetHelpText("Seleccione el servicio de servicio para el reclamo.")
         self.servicio_choice = wx.Choice(panel, choices=["Luz", "Internet", "Telefonía", "Cable"], name="servicioChoice")
         vbox.Add(self.servicio_choice, 0, wx.ALL | wx.EXPAND, 5)
 

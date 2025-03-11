@@ -1,10 +1,10 @@
 [
     {
         "id": 1,
-        "fecha": "2025-03-09T18:01:15.964785",
-        "tipo": "Internet",
-        "socio": "mara luque - Domicilio: san lorenzo  3545 - Teléfono: 3532343567",
-        "detalle": "onu alarmada",
+        "fecha": "11-03-2025",
+        "servicio": "Luz",
+        "socio": "Juana López - Domicilio: E.bonfante - Teléfono: 3532765456",
+        "detalle": "salto fusible",
         "estado": "Pendiente"
     }
 ]

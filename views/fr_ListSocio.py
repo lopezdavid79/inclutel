@@ -291,5 +291,5 @@ class AgregarSocioDialog(wx.Dialog):
         except Exception as e:
             self.mostrar_mensaje(f"Error al guardar el socio: {e}", wx.ICON_ERROR)
 
-    def mostrar_mensaje(self, mensaje, tipo=wx.ICON_ERROR):
-        wx.MessageBox(mensaje, "Información", style=tipo)
+    def mostrar_mensaje(self, mensaje, servicio=wx.ICON_ERROR):
+        wx.MessageBox(mensaje, "Información", style=servicio)

@@ -1,3 +1,4 @@
+
 import json
 import os
 import sys
@@ -44,8 +45,9 @@ class GestionSocio:
             json.dump(self.socios, archivo, indent=4, ensure_ascii=False)
 
     def registrar_socio(self, nombre, domicilio, telefono, n_socio):
+        nuevo_id = len(self.socios) + 1
         """Registra un nuevo socio y lo guarda en la base de datos."""
-        nuevo_socio = Socio(nombre, domicilio, telefono, n_socio)
+        nuevo_socio = Socio(nuevo_id,nombre, domicilio, telefono, n_socio)
         socio_dict = nuevo_socio.a_diccionario()
         self.socios.append(socio_dict)
         self.guardar_datos()

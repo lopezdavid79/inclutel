@@ -1,11 +1,11 @@
 import json
 
 class Socio:
-    contador_id = 0
+    
 
-    def __init__(self, nombre, domicilio, telefono, n_socio):
-        Socio.contador_id += 1
-        self.id = Socio.contador_id
+    def __init__(self, id,nombre, domicilio, telefono, n_socio):
+        
+        self.id =id 
         self.nombre = nombre
         self.domicilio = domicilio
         self.telefono = telefono

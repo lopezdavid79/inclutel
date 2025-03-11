@@ -45,10 +45,10 @@ class GestionReclamo:
         with open(ruta_completa, 'w', encoding='utf-8') as archivo:
             json.dump(self.reclamos, archivo, indent=4, ensure_ascii=False)
 
-    def registrar_reclamo(self, fecha, tipo, detalle, socio, estado):
+    def registrar_reclamo(self, fecha, servicio, detalle, socio, estado):
         """Registra un nuevo reclamo y lo guarda en la base de datos."""
         nuevo_id = len(self.reclamos) + 1
-        nuevo_reclamo = Reclamo(fecha, tipo, detalle, socio, estado) 
+        nuevo_reclamo = Reclamo(nuevo_id, servicio, detalle, socio, estado) 
         reclamo_dict = nuevo_reclamo.a_diccionario()  # Usamos el método a_diccionario
         #print("Diccionario antes de guardar:", reclamo_dict) # Agregamos esta línea
         self.reclamos.append(reclamo_dict)
